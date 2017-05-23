@@ -47,10 +47,11 @@ function love.update(dt)
             controlTime = controlTime - updaterate
         end
 
-        if player1 and piecesPlayer2 == nil then
+        if player1 and (piecesPlayer2 == nil or piecesPlayer2 == '') then
             wp = rpc:waitingPlayer2()
             if wp ~= false then
-                piecesPlayer2 = wp
+                opponentname = wp.name
+                piecesPlayer2 = wp.pieces
             end
         end
 
@@ -91,9 +92,11 @@ function love.keypressed(key)
             colorUser = init.color
             player1 = init.player1
             player2 = init.player2
-            if player2 == true then
-                piecesPlayer1 = rpc:getPecasPlayer1()
+            if player2 == true and piecesPlayer1 == nil then
                 piecesPlayer2 = ''
+                p1 = rpc:getPlayer1()
+                piecesPlayer1 = p1.pieces
+                opponentname = p1.name
             end
         end
     end
@@ -170,7 +173,7 @@ function love.draw()
                 love.graphics.setColor(value.color)
                 love.graphics.circle("fill", value.x, value.y, value.radius)
             end
-            piecesPlayer2 = rpc:getPiecesPlayer2()
+            piecesPlayer2 = rpc:getPlayer2().pieces
         end
 
         -- pintando as peças do player1 caso eu seja player 2
@@ -179,7 +182,7 @@ function love.draw()
                 love.graphics.setColor(value.color)
                 love.graphics.circle("fill", value.x, value.y, value.radius)
             end
-            piecesPlayer1 = rpc:getPiecesPlayer1()
+            piecesPlayer1 = rpc:getPlayer1().pieces
         end
     end
 end

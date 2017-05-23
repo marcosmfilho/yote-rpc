@@ -52,21 +52,21 @@ function rpc:newClient(id, name)
         -- Quando o cliente se cadastra já recebe as peças do servidor
         if tablelength(clients) == 1 then
             turn = id
-            return {pieces = piecesPlayer1, player1 = true, player2 = false, id = id, turn = id, color = {102, 0, 204}};
+            return {pieces = piecesPlayer1, player1 = true, player2 = false, id = id, turn = id, color = {102, 0, 204}, name = name};
         elseif tablelength(clients) == 2 then
-            return {pieces = piecesPlayer2, player1 = false, player2 = true, id = id, turn = false, color = {179, 0, 59}};
+            return {pieces = piecesPlayer2, player1 = false, player2 = true, id = id, turn = false, color = {179, 0, 59}, name = name};
         end
     else
         return false
     end
 end
 
-function rpc:getPiecesPlayer1()
-    return piecesPlayer1
+function rpc:getPlayer1()
+    return {pieces = piecesPlayer1, name = clients[1].name}
 end
 
-function rpc:getPiecesPlayer2()
-    return piecesPlayer2
+function rpc:getPlayer2()
+    return {pieces = piecesPlayer2, name = clients[2].name}
 end
 
 function rpc:refreshPieces(idClient, pieces)
@@ -83,12 +83,8 @@ function rpc:waitingPlayer2()
     if tablelength(clients) == 1 then
         return false
     elseif tablelength(clients) == 2 then
-        return piecesPlayer2
+        return {pieces = piecesPlayer2, name = clients[2].name}
     end
-end
-
-function rpc:getPecasPlayer1()
-    return piecesPlayer1
 end
 
 function rpc:newMessage(idUser, nameUser, msg)
