@@ -33,7 +33,15 @@ p23 = {name = 'p23',x = 850, y = 170,radius = 35,color={179, 0, 59},position = {
 p24 = {name = 'p24',x = 930, y = 170,radius = 35,color={179, 0, 59},position = {l=0,c=0},dragging = { active = false, diffX = 0, diffY = 0 }}
 piecesPlayer2 = {p13,p14,p15,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24}
 
+board =  {{0,0,0,0,0},
+          {0,0,0,0,0},
+          {0,0,0,0,0},
+          {0,0,0,0,0},
+          {0,0,0,0,0},
+          {0,0,0,0,0}}
+
 turn = ''
+piecedie = ''
 
 function tablelength(T)
   counter = 0
@@ -118,8 +126,30 @@ function rpc:changeTurn(idUser)
     end
 end
 
-function rpc:getTurn()
+function rpc:refreshBoard(localboard)
+    board = localboard[1]
+    killpiece = localboard[2]
+    if killpiece == true then
+        return true
+    else
+        return killpiece
+    end
+end
+
+function rpc:killpiece(namepiece)
+    piecedie = namepiece
+end
+
+function rpc:getkillpiece()
+    return piecedie
+end
+
+function rpc:verifyTurn()
     return turn
+end
+
+function rpc:getBoard()
+    return board
 end
 
 while 1 do rpc:update() end

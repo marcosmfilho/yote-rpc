@@ -64,7 +64,16 @@ function love.update(dt)
             love.event.quit()
         end
         chat.update(dt)
-        turn = rpc:getTurn()
+        turn = rpc:verifyTurn()
+        boardarray = rpc:getBoard()
+
+        local diepiece = rpc:getkillpiece()
+        for k,v in pairs(pieces) do
+             if v.name == diepiece then
+                 pieces[k] = nil
+             end
+        end
+
     end
 end
 
@@ -122,8 +131,12 @@ function love.mousereleased(x, y, button)
         if turn == idUser and piecesPlayer2 ~= nil then
             valuePiece = board.mousereleased(x, y, button)
             if valuePiece then
-                -- print(valuePiece)
+                print(table.tostring(valuePiece))
                 rpc:changeTurn(idUser)
+                refresh = rpc:refreshBoard(valuePiece)
+                if refresh ~= true then
+                    rpc:killpiece(refresh)
+                end
             end
         end
     end
@@ -143,7 +156,6 @@ function love.draw()
         love.graphics.draw(background, 0,0)
         board.draw()
         chat.draw()
-
         if piecesPlayer2 == nil  then
             love.graphics.setColor(77, 38, 0);
             love.graphics.print('Waiting for the second player...', 510, 10)
