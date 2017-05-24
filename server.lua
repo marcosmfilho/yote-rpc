@@ -3,6 +3,21 @@ local rpc = require 'rpc'.server()
 msgs = {}
 clients = {}
 
+function deepcopy(orig)
+    local orig_type = type(orig)
+    local copy
+    if orig_type == 'table' then
+        copy = {}
+        for orig_key, orig_value in next, orig, nil do
+            copy[deepcopy(orig_key)] = deepcopy(orig_value)
+        end
+        setmetatable(copy, deepcopy(getmetatable(orig)))
+    else -- number, string, boolean, etc
+        copy = orig
+    end
+    return copy
+end
+
 -- init pieces player 1
 p1 = {name = 'p1',x = 530, y = 260,radius = 35,color={102, 0, 204},position = {l=0,c=0},dragging = { active = false, diffX = 0, diffY = 0 }}
 p2 = {name = 'p2',x = 610, y = 260,radius = 35,color={102, 0, 204},position = {l=0,c=0},dragging = { active = false, diffX = 0, diffY = 0 }}
@@ -17,6 +32,7 @@ p10 = {name = 'p10',x = 770, y = 340,radius = 35,color={102, 0, 204},position = 
 p11 = {name = 'p11',x = 850, y = 340,radius = 35,color={102, 0, 204},position = {l=0,c=0},dragging = { active = false, diffX = 0, diffY = 0 }}
 p12 = {name = 'p12',x = 930, y = 340,radius = 35,color={102, 0, 204},position = {l=0,c=0},dragging = { active = false, diffX = 0, diffY = 0 }}
 piecesPlayer1 = {p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12}
+initPiecesPlayer1 = deepcopy(piecesPlayer1)
 
 -- init pieces player 2
 p13 = {name = 'p13',x = 530, y = 90,radius = 35,color={179, 0, 59},position = {l=0,c=0},dragging = { active = false, diffX = 0, diffY = 0 }}
@@ -32,6 +48,7 @@ p22 = {name = 'p22',x = 770, y = 170,radius = 35,color={179, 0, 59},position = {
 p23 = {name = 'p23',x = 850, y = 170,radius = 35,color={179, 0, 59},position = {l=0,c=0},dragging = { active = false, diffX = 0, diffY = 0 }}
 p24 = {name = 'p24',x = 930, y = 170,radius = 35,color={179, 0, 59},position = {l=0,c=0},dragging = { active = false, diffX = 0, diffY = 0 }}
 piecesPlayer2 = {p13,p14,p15,p15,p16,p17,p18,p19,p20,p21,p22,p23,p24}
+initPiecesPlayer2 = deepcopy(piecesPlayer2)
 
 board =  {{0,0,0,0,0},
           {0,0,0,0,0},
@@ -39,6 +56,8 @@ board =  {{0,0,0,0,0},
           {0,0,0,0,0},
           {0,0,0,0,0},
           {0,0,0,0,0}}
+
+initBoard = deepcopy(board)
 
 turn = ''
 piecedie = ''
@@ -70,11 +89,17 @@ function rpc:newClient(id, name)
 end
 
 function rpc:getPlayer1()
-    return {pieces = piecesPlayer1, name = clients[1].name}
+    if piecesPlayer1 ~= nil then
+        return {pieces = piecesPlayer1, name = clients[1].name}
+    end
+    return nil
 end
 
 function rpc:getPlayer2()
-    return {pieces = piecesPlayer2, name = clients[2].name}
+    if piecesPlayer2 ~= nil then
+        return {pieces = piecesPlayer2, name = clients[2].name}
+    end
+    return nil
 end
 
 function rpc:refreshPieces(idClient, pieces)
@@ -84,6 +109,9 @@ function rpc:refreshPieces(idClient, pieces)
         elseif clients[2].id == idClient then
             piecesPlayer2 = pieces
         end
+    else
+        piecesPlayer1 = initPiecesPlayer1
+        piecesPlayer2 = initPiecesPlayer2
     end
 end
 
@@ -150,6 +178,32 @@ end
 
 function rpc:getBoard()
     return board
+end
+
+function rpc:quit(idUser)
+    if clients[1].id == idUser then
+        piecesPlayer1 = nil
+        piecesPlayer2 = initPiecesPlayer1
+        clients[2].player1 = true
+        clients[2].player2 = false
+        turn = clients[2].id
+        clients = {clients[2]}
+    elseif clients[2].id == idUser then
+        piecesPlayer2 = nil
+        piecesPlayer1 = initPiecesPlayer1
+        clients[1].player1 = true
+        clients[1].player2 = false
+        turn = clients[1].id
+        clients = {clients[1]}
+    end
+end
+
+function rpc:restartgame()
+    board = initBoard
+    piecesPlayer1 = initPiecesPlayer1
+    piecesPlayer2 = initPiecesPlayer2
+    
+    return {piecesPlayer1, piecesPlayer2}
 end
 
 while 1 do rpc:update() end

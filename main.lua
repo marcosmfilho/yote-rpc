@@ -11,6 +11,7 @@ local updaterate = 0.1
 local controlTime
 local input = {text = ""}
 local init
+local movingPiece = false
 
 function love.load()
     rpc = require 'rpc'.client('localhost', 2021)
@@ -57,23 +58,30 @@ function love.update(dt)
 
         suit.layout:reset(10,555)
         if suit.Button("Restart", suit.layout:row(215,30)).hit then
-            love.event.quit()
+            restart = rpc:restartgame()
+            if player1 then
+                pieces = restart[1]
+            else
+                pieces = restart[2]
+            end
         end
         suit.layout:reset(235,555)
         if suit.Button("Quit", suit.layout:row(215,30)).hit then
+            -- rpc:quit(idUser)
             love.event.quit()
         end
         chat.update(dt)
         turn = rpc:verifyTurn()
         boardarray = rpc:getBoard()
 
-        local diepiece = rpc:getkillpiece()
-        for k,v in pairs(pieces) do
-             if v.name == diepiece then
-                 pieces[k] = nil
-             end
+        if pieces ~= false or pices ~= nil then
+            local diepiece = rpc:getkillpiece()
+            for k,v in pairs(pieces) do
+                 if v.name == diepiece then
+                     pieces[k] = nil
+                 end
+            end
         end
-
     end
 end
 
@@ -123,6 +131,7 @@ end
 function love.mousepressed(x, y, button)
      if turn == idUser and piecesPlayer2 ~= nil then
         board.mousepressed(x, y, button)
+        movingPiece = true
      end
 end
 
@@ -131,11 +140,11 @@ function love.mousereleased(x, y, button)
         if turn == idUser and piecesPlayer2 ~= nil then
             valuePiece = board.mousereleased(x, y, button)
             if valuePiece then
-                print(table.tostring(valuePiece))
                 rpc:changeTurn(idUser)
                 refresh = rpc:refreshBoard(valuePiece)
                 if refresh ~= true then
                     rpc:killpiece(refresh)
+                    movingPiece = false
                 end
             end
         end
@@ -172,11 +181,12 @@ function love.draw()
         love.graphics.setFont(love.graphics.newFont('fonts/accid.ttf',20))
 
         -- pintando as minhas peças nos valores iniciais caso só tenha um adversário
-        if tablelength(pieces) > 0 then
+        if tablelength(pieces) > 0 and pieces ~= false then
             for key, value in pairs(pieces) do
                 love.graphics.setColor(value.color)
                 love.graphics.circle("fill", value.x, value.y, value.radius)
             end
+            -- pieces = rpc:refreshMyPieces(idUser)
         end
 
         -- pintando as peças do player2 caso eu seja player 1
@@ -185,7 +195,12 @@ function love.draw()
                 love.graphics.setColor(value.color)
                 love.graphics.circle("fill", value.x, value.y, value.radius)
             end
-            piecesPlayer2 = rpc:getPlayer2().pieces
+            local player2 = rpc:getPlayer2()
+            if player2 ~= nil then
+                piecesPlayer2 = player2.pieces
+            else
+                piecesPlayer2 = nil
+            end
         end
 
         -- pintando as peças do player1 caso eu seja player 2
@@ -194,7 +209,12 @@ function love.draw()
                 love.graphics.setColor(value.color)
                 love.graphics.circle("fill", value.x, value.y, value.radius)
             end
-            piecesPlayer1 = rpc:getPlayer1().pieces
+            local player1 = rpc:getPlayer1()
+            if player1 ~= nil then
+                piecesPlayer1 = player1.pieces
+            else
+                piecesPlayer1 = nil
+            end
         end
     end
 end
