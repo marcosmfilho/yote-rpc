@@ -207,7 +207,7 @@ function love.draw()
         if piecesPlayer1 ~= nil and piecesPlayer1 ~= '' then
             for key, value in pairs(piecesPlayer1) do
                 love.graphics.setColor(value.color)
-                love.graphics.circle("fill", value.x, value.y, value.radius)
+                love.graphics.circle("fill", value.x, value.y, 35)
             end
             local player1 = rpc:getPlayer1()
             if player1 ~= nil then
